@@ -1,0 +1,54 @@
+name: CI/CD Pipeline for Web Game
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build, Test, and Deploy to Localhost
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # Step 2: Build Docker image
+      - name: Build Docker Image
+        run: |
+          docker build -t web-game .
+
+      # Step 3: Run container for testing
+      - name: Run Test Container
+        run: |
+          docker run -d --network host --name test-container web-game
+          sleep 5
+
+      # Step 4: Perform health check
+      - name: Health Check
+        run: |
+          STATUS_CODE=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:80)
+          if [ "$STATUS_CODE" -ne 200 ]; then
+            echo "Health check failed. Expected HTTP 200 but got $STATUS_CODE."
+            exit 1
+          else
+            echo "Health check passed. Application is responding correctly."
+          fi
+
+      # Step 5: Remove test container after validation
+      - name: Remove Test Container
+        if: always()
+        run: |
+          docker stop test-container
+          docker rm test-container
+
+      # Step 6: Deploy to localhost
+      - name: Deploy to Localhost
+        run: |
+          docker run -d --name deployed-container -p 80:80 web-game
+          echo "Application deployed to localhost (port 80)."
+
