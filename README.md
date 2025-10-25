@@ -7,12 +7,19 @@ This repository demonstrates a compact, production-minded CI/CD pipeline for a s
 
 Repository structure
 fin60/
+
 ├── .github/
+
 │   └── workflows/
+
 │       └── cicd.yml
+
 ├── .dockerignore
+
 ├── Dockerfile
+
 ├── index.html
+
 └── README.md
 
 Prerequisites
